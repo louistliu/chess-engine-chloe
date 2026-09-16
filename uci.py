@@ -1,6 +1,7 @@
 import sys
 import chess
 from engine.random_move_gen import get_random_move
+from engine.search import get_best_move
 
 def main():
     """UCI loop to communicate with a GUI"""
@@ -38,7 +39,7 @@ def main():
                     board.push_uci(move)
 
         elif command == "go":
-            move = get_random_move(board)
+            move = get_best_move(board)
             if move:
                 print(f"bestmove {move.uci()}", flush=True)
             else:
