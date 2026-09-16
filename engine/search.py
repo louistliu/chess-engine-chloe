@@ -15,7 +15,7 @@ def get_best_move(board, depth=3):
         if score > max_score:
             max_score = score
             best_move = move
-
+    print(f"info depth {depth} score cp {max_score}")
     return best_move
 
 
@@ -24,7 +24,7 @@ def negamax(board, depth):
     returns the score with the highest evaluation."""
 
     if board.is_checkmate():
-        return -24000 + depth
+        return -24000 - depth
     
     if board.is_game_over():
         return 0
