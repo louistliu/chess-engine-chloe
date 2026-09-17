@@ -18,5 +18,5 @@ def evaluate_board(board):
         black_count = len(board.pieces(piece_type, chess.BLACK))
 
         score += (white_count - black_count) * PIECE_VALUES[piece_type]
-
+        
     return score
