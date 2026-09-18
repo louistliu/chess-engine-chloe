@@ -1,6 +1,5 @@
 import sys
 import chess
-from engine.random_move_gen import get_random_move
 from engine.search import get_best_move
 
 def main():
