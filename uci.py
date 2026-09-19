@@ -1,6 +1,7 @@
 import sys
 import chess
 from engine.search import get_best_move
+import engine.search as search
 
 def main():
     """UCI loop to communicate with a GUI"""
@@ -38,8 +39,10 @@ def main():
                     board.push_uci(move)
 
         elif command == "go":
-            move = get_best_move(board)
+            depth = 4
+            move, score = get_best_move(board, depth)
             if move:
+                print(f"info depth {depth} score cp {score} nodes {search.node_count}", flush=True)
                 print(f"bestmove {move.uci()}", flush=True)
             else:
                 print("bestmove 0000", flush=True)

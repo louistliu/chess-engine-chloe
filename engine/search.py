@@ -9,7 +9,10 @@ def get_best_move(board, depth=4):
     the search algorithms like negamax below."""
 
     global node_count
-    node_count += 1
+    node_count = 1
+
+    if board.is_game_over():
+        return None
 
     best_move = None
     max_score = -float('inf')
@@ -30,8 +33,7 @@ def get_best_move(board, depth=4):
         if max_score > alpha:
             alpha = max_score
     
-    print(f"info depth {depth} score cp {max_score} nodes {node_count}")
-    return best_move
+    return best_move, max_score
 
 
 def negamax(board, depth, alpha, beta):
