@@ -95,21 +95,28 @@ def quiescence(board, alpha, beta):
     """Quiescence search keeps searching moves that are only captures, ensuring we end our 
     search whenever the board is "quiet". It returns the score with the highest evaluation."""
 
+    tt_score, tt_move = tt.lookup(board, 0, alpha, beta)
+    if tt_score is not None:
+        return tt_score
+
     if board.turn == chess.WHITE: 
         current_score = evaluate_board(board)
     else:
         current_score = -evaluate_board(board)
 
     if current_score >= beta:
-        return beta
+        tt.store(board, None, current_score, 0, BETA_CUT)
+        return current_score
 
     if current_score > alpha:
         alpha = current_score
 
     max_score = current_score
+    best_move = None
+    alpha_start = alpha
 
     captures = list(board.generate_legal_captures())
-    captures.sort(key=lambda move: rank_move(board, move), reverse=True)
+    captures.sort(key=lambda move: 24000 if move == tt_move else rank_move(board, move), reverse=True)
 
     for move in captures:
         global node_count
@@ -121,10 +128,20 @@ def quiescence(board, alpha, beta):
 
         if score > max_score:
             max_score = score
-        if max_score > alpha:
-            alpha = max_score
-        if max_score >= beta:
-            return beta
+            best_move = move
+        if score > alpha:
+            alpha = score
+        if score >= beta:
+            break
+
+    if (max_score <= alpha_start):
+        flag = ALPHA_CUT
+    elif (max_score >= beta):
+        flag = BETA_CUT
+    else:
+        flag = EXACT
+
+    tt.store(board, best_move, max_score, 0, flag)
 
     return max_score
 
