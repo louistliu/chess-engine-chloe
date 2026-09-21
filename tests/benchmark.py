@@ -1,6 +1,6 @@
 import chess
 import time
-from engine.search import get_best_move
+from engine.search import get_best_move, tt
 import engine.search as search
 
 #Position FENS are selected from https://github.com/official-stockfish/Stockfish/blob/master/src/benchmark.cpp.
@@ -65,6 +65,7 @@ def benchmark(depth=4):
     total_time = 0
 
     for i, position in enumerate(BENCHMARK_POSITIONS):
+        tt.clear()
         board = chess.Board(position)
         timeStart = time.perf_counter()
         get_best_move(board, depth)

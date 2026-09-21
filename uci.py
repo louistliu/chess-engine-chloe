@@ -1,6 +1,6 @@
 import sys
 import chess
-from engine.search import get_best_move
+from engine.search import get_best_move, tt
 import engine.search as search
 
 def main():
@@ -23,6 +23,7 @@ def main():
             print("readyok", flush=True)
 
         elif command == "ucinewgame":
+            tt.clear()
             board.reset()
 
         elif command == "position":

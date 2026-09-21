@@ -1,8 +1,10 @@
 import chess
 from engine.evaluate import evaluate_board
 from engine.move_order import rank_move
+from engine.tt import TranspositionTable, EXACT, BETA_CUT, ALPHA_CUT
 
 node_count = 0
+tt = TranspositionTable()
 
 def get_best_move(board, depth=4):
     """Finds the best move at the root of the search tree. Bridges the UCI communication with 
@@ -42,6 +44,10 @@ def negamax(board, depth, alpha, beta):
 
     global node_count
     node_count += 1
+
+    tt_score, tt_move = tt.lookup(board, depth, alpha, beta)
+    if tt_score is not None:
+        return tt_score
     
     if board.is_checkmate():
         return -24000 - depth
@@ -56,9 +62,11 @@ def negamax(board, depth, alpha, beta):
         return quiescence(board, alpha, beta)
 
     max_score = -float('inf')
+    best_move = None
+    alpha_start = alpha
 
     moves = list(board.legal_moves)
-    moves.sort(key=lambda move: rank_move(board, move), reverse=True)
+    moves.sort(key=lambda move: 24000 if move == tt_move else rank_move(board, move), reverse=True)
 
     for move in moves:
         board.push(move)
@@ -66,11 +74,20 @@ def negamax(board, depth, alpha, beta):
         board.pop()
         if score > max_score:
             max_score = score
-        if max_score > alpha:
+            best_move = move
+        if score > alpha:
             alpha = max_score
-        if alpha >= beta:
+        if score >= beta:
             break
-        
+
+    if (max_score <= alpha_start):
+        flag = ALPHA_CUT
+    elif (max_score >= beta):
+        flag = BETA_CUT
+    else:
+        flag = EXACT
+
+    tt.store(board, best_move, max_score, depth, flag)
 
     return max_score
 
