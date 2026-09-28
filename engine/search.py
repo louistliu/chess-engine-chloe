@@ -45,6 +45,9 @@ def negamax(board, depth, alpha, beta):
     global node_count
     node_count += 1
 
+    if board.can_claim_draw():
+        return 0
+
     tt_score, tt_move = tt.lookup(board, depth, alpha, beta)
     if tt_score is not None:
         return tt_score
@@ -52,10 +55,10 @@ def negamax(board, depth, alpha, beta):
     if board.is_checkmate():
         return -24000 - depth
 
-    if board.can_claim_draw():
+    if board.is_stalemate():
         return 0
     
-    if board.is_game_over():
+    if board.is_insufficient_material():
         return 0
     
     if depth == 0:
