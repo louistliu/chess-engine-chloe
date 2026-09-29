@@ -12,7 +12,7 @@ class TimeOutException(Exception):
 
     pass
 
-def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=None):
+def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=None, moves_until_limit=None):
     """Finds the best move at the root of the search tree. Bridges the UCI communication with 
     the search algorithms like negamax below. Does the search at inreasing depth until the time
     allocated for the move is up. Returns the best move and its score."""
@@ -30,8 +30,9 @@ def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=N
         if remaining_time < 100:
             max_depth = 0
         else:
-            target_time = (remaining_time / 40) + increment
-            time_limit = target_time / 1000 if target_time < (remaining_time - 50) else (remaining_time - 50) / 1000
+            divisor = moves_until_limit if moves_until_limit is not None else 40
+            target_time = (remaining_time / divisor) + increment
+            time_limit = target_time / 1000 if target_time < (remaining_time - 150) else (remaining_time - 150) / 1000
 
     if board.is_game_over():
         return None
@@ -70,6 +71,9 @@ def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=N
             max_score = current_max_score
 
             depth_reached = current_depth
+
+            if max_score > 23000:
+                break
             
         except TimeOutException:
             break
