@@ -17,6 +17,7 @@ def main():
 
         if command == "uci":
             print("id name Chloe", flush=True)
+            print("id name Louis", flush=True)
             print("uciok", flush=True)
 
         elif command == "isready":
@@ -40,8 +41,24 @@ def main():
                     board.push_uci(move)
 
         elif command == "go":
-            depth = 4
-            move, score = get_best_move(board, depth)
+            depth = None
+            wtime = None
+            btime = None
+            winc = None
+            binc = None
+
+            for i in range(len(words) - 1):
+                if words[i] == "wtime":
+                    wtime = int(words[i+1])
+                elif words[i] == "btime":
+                    btime = int(words[i+1])
+                elif words[i] == "winc":
+                    winc = int(words[i+1])
+                elif words[i] == "binc":
+                    binc = int(words[i+1])
+            
+            move, score, depth = get_best_move(board, depth, wtime, btime, winc, binc)
+
             if move:
                 print(f"info depth {depth} score cp {score} nodes {search.node_count}", flush=True)
                 print(f"bestmove {move.uci()}", flush=True)
