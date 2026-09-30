@@ -27,12 +27,12 @@ def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=N
     if wtime is not None and btime is not None:
         remaining_time = wtime if board.turn == chess.WHITE else btime
         increment = (winc or 0) if board.turn == chess.WHITE else (binc or 0)
-        if remaining_time < 100:
+        if remaining_time < 150:
             max_depth = 0
         else:
             divisor = moves_until_limit if moves_until_limit is not None else 40
             target_time = (remaining_time / divisor) + increment
-            time_limit = target_time / 1000 if target_time < (remaining_time - 150) else (remaining_time - 150) / 1000
+            time_limit = target_time / 1000 if target_time < (remaining_time - 100) else (remaining_time - 100) / 1000
 
     if board.is_game_over():
         return None
@@ -88,7 +88,7 @@ def negamax(board, depth, alpha, beta, start_time, time_limit):
     global node_count
     node_count += 1
 
-    if time_limit is not None and node_count % 1024 == 0:
+    if time_limit is not None and node_count & 255 == 0:
         if time.time() - start_time > time_limit:
             raise TimeOutException()
 
@@ -147,7 +147,7 @@ def quiescence(board, alpha, beta, start_time, time_limit):
 
     global node_count
 
-    if time_limit is not None and node_count % 1024 == 0:
+    if time_limit is not None and node_count & 255 == 0:
         if time.time() - start_time > time_limit:
             raise TimeOutException()
 
