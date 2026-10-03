@@ -70,7 +70,6 @@ def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=N
     
     return best_move, max_score, depth_reached
 
-
 def negamax(board, depth, alpha, beta):
     """Negamax function recursively searches moves a certain depth into the search tree and 
     returns the score with the highest evaluation."""
@@ -78,7 +77,7 @@ def negamax(board, depth, alpha, beta):
     global node_count
     node_count += 1
 
-    if node_count & 255 == 0:
+    if node_count & 127 == 0:
         tm.check_timeout()
 
     if board.can_claim_draw():
@@ -136,7 +135,7 @@ def quiescence(board, alpha, beta):
 
     global node_count
 
-    if node_count & 255 == 0:
+    if node_count & 127 == 0:
         tm.check_timeout()
 
     tt_score, tt_move = tt.lookup(board, 0, alpha, beta)
