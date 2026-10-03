@@ -1,16 +1,12 @@
 import chess
-import time
+from engine.time_management import TimeManager, TimeOutException
 from engine.evaluate import evaluate_board
 from engine.move_order import rank_move
 from engine.tt import TranspositionTable, EXACT, BETA_CUT, ALPHA_CUT
 
 node_count = 0
 tt = TranspositionTable()
-
-class TimeOutException(Exception):
-    """"Custom exception to handle timeouts during search."""
-
-    pass
+tm = TimeManager()
 
 def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=None, moves_until_limit=None):
     """Finds the best move at the root of the search tree. Bridges the UCI communication with 
@@ -23,26 +19,20 @@ def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=N
     if max_depth is None:
         max_depth = 64
 
-    time_limit = None
-    if wtime is not None and btime is not None:
-        remaining_time = wtime if board.turn == chess.WHITE else btime
-        increment = (winc or 0) if board.turn == chess.WHITE else (binc or 0)
-        if remaining_time < 150:
-            max_depth = 0
-        else:
-            divisor = moves_until_limit if moves_until_limit is not None else 40
-            target_time = (remaining_time / divisor) + increment
-            time_limit = target_time / 1000 if target_time < (remaining_time - 100) else (remaining_time - 100) / 1000
-
     if board.is_game_over():
         return None
 
-    best_move = None
+    moves = list(board.legal_moves)
+
+    best_move = moves[0]
     max_score = -float('inf')
-    start_time = time.time()
     depth_reached = 0
 
-    moves = list(board.legal_moves)
+    tm.allocate_time(board, wtime, btime, winc, binc, moves_until_limit)
+
+    if tm.skip_search:
+        return best_move, max_score, 0
+
     moves.sort(key=lambda move: rank_move(board, move), reverse=True)
 
     for current_depth in range(1, max_depth+1):
@@ -59,7 +49,7 @@ def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=N
 
             for move in moves:
                 board.push(move)
-                score = -negamax(board, current_depth - 1, -beta, -alpha, start_time, time_limit)
+                score = -negamax(board, current_depth - 1, -beta, -alpha)
                 board.pop()
                 if score > current_max_score:
                     current_max_score = score
@@ -81,16 +71,15 @@ def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=N
     return best_move, max_score, depth_reached
 
 
-def negamax(board, depth, alpha, beta, start_time, time_limit):
+def negamax(board, depth, alpha, beta):
     """Negamax function recursively searches moves a certain depth into the search tree and 
     returns the score with the highest evaluation."""
 
     global node_count
     node_count += 1
 
-    if time_limit is not None and node_count & 255 == 0:
-        if time.time() - start_time > time_limit:
-            raise TimeOutException()
+    if node_count & 255 == 0:
+        tm.check_timeout()
 
     if board.can_claim_draw():
         return 0
@@ -109,7 +98,7 @@ def negamax(board, depth, alpha, beta, start_time, time_limit):
         return 0
     
     if depth == 0:
-        return quiescence(board, alpha, beta, start_time, time_limit)
+        return quiescence(board, alpha, beta)
 
     max_score = -float('inf')
     best_move = None
@@ -120,7 +109,7 @@ def negamax(board, depth, alpha, beta, start_time, time_limit):
 
     for move in moves:
         board.push(move)
-        score = -negamax(board, depth - 1, -beta, -alpha, start_time, time_limit)
+        score = -negamax(board, depth - 1, -beta, -alpha)
         board.pop()
         if score > max_score:
             max_score = score
@@ -141,15 +130,14 @@ def negamax(board, depth, alpha, beta, start_time, time_limit):
 
     return max_score
 
-def quiescence(board, alpha, beta, start_time, time_limit):
+def quiescence(board, alpha, beta):
     """Quiescence search keeps searching moves that are only captures, ensuring we end our 
     search whenever the board is "quiet". It returns the score with the highest evaluation."""
 
     global node_count
 
-    if time_limit is not None and node_count & 255 == 0:
-        if time.time() - start_time > time_limit:
-            raise TimeOutException()
+    if node_count & 255 == 0:
+        tm.check_timeout()
 
     tt_score, tt_move = tt.lookup(board, 0, alpha, beta)
     if tt_score is not None:
@@ -178,7 +166,7 @@ def quiescence(board, alpha, beta, start_time, time_limit):
         node_count += 1
 
         board.push(move)
-        score = -quiescence(board, -beta, -alpha, start_time, time_limit)
+        score = -quiescence(board, -beta, -alpha)
         board.pop()
 
         if score > max_score:
@@ -199,6 +187,3 @@ def quiescence(board, alpha, beta, start_time, time_limit):
     tt.store(board, best_move, max_score, 0, flag)
 
     return max_score
-
-
-

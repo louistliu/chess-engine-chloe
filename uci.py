@@ -5,6 +5,7 @@ import engine.search as search
 
 def main():
     """UCI loop to communicate with a GUI"""
+    
     board = chess.Board()
 
     for line in sys.stdin:
