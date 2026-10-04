@@ -6,7 +6,7 @@ from engine.tt import TranspositionTable, EXACT, BETA_CUT, ALPHA_CUT
 
 node_count = 0
 tt = TranspositionTable()
-tm = TimeManager()
+tm = TimeManager(0.3, 1.8)
 
 def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=None, moves_until_limit=None):
     """Finds the best move at the root of the search tree. Bridges the UCI communication with 
@@ -36,7 +36,10 @@ def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=N
     moves.sort(key=lambda move: rank_move(board, move), reverse=True)
 
     for current_depth in range(1, max_depth+1):
+
         try:
+            prev_best_move = best_move
+
             if best_move in moves:
                 moves.remove(best_move)
                 moves.insert(0, best_move)
@@ -64,6 +67,9 @@ def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=N
 
             if max_score > 23000:
                 break
+
+            if best_move == prev_best_move:
+                tm.check_early_timeout()
             
         except TimeOutException:
             break
@@ -77,7 +83,7 @@ def negamax(board, depth, alpha, beta):
     global node_count
     node_count += 1
 
-    if node_count & 127 == 0:
+    if node_count & 255 == 0:
         tm.check_timeout()
 
     if board.can_claim_draw():
@@ -135,7 +141,7 @@ def quiescence(board, alpha, beta):
 
     global node_count
 
-    if node_count & 127 == 0:
+    if node_count & 255 == 0:
         tm.check_timeout()
 
     tt_score, tt_move = tt.lookup(board, 0, alpha, beta)
