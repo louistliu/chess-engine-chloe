@@ -43,6 +43,5 @@ class TranspositionTable:
         if not entry or depth >= entry[2]:
             self.table[hash_key] = (best_move, score, depth, flag)
 
-
     def clear(self):
         self.table.clear()

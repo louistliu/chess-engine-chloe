@@ -31,7 +31,7 @@ class TimeManager:
         if wtime is not None and btime is not None:
             remaining_time = wtime if board.turn == chess.WHITE else btime
             increment = (winc or 0) if board.turn == chess.WHITE else (binc or 0)
-            if remaining_time < 75:
+            if remaining_time < 100:
                 self.skip_search = True
             else:
                 divisor = moves_until_limit if moves_until_limit is not None else 20
