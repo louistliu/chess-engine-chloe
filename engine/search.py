@@ -5,6 +5,7 @@ from engine.move_order import rank_move
 from engine.tt import TranspositionTable, EXACT, BETA_CUT, ALPHA_CUT
 
 node_count = 0
+history_table = [[0 for _ in range(64)] for _ in range(64)]
 killer_moves = [[None, None] for _ in range(64)] 
 tt = TranspositionTable()
 tm = TimeManager(0.3, 1.8)
@@ -14,7 +15,7 @@ def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=N
     the search algorithms like negamax below. Does the search at inreasing depth until the time
     allocated for the move is up. Returns the best move and its score."""
 
-    global node_count, killer_moves
+    global node_count, killer_moves, history_table
     node_count = 1
 
     if max_depth is None:
@@ -39,6 +40,9 @@ def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=N
 
     #Initialize killer move table with two slots for each new search.
     killer_moves = [[None, None] for _ in range(64)] 
+
+    #Initialize history table for each new search
+    history_table = [[0 for _ in range(64)] for _ in range(64)]
 
     for current_depth in range(1, max_depth+1):
         try:
@@ -87,7 +91,7 @@ def negamax(board, depth, alpha, beta, ply):
     """Negamax function recursively searches moves a certain depth into the search tree and 
     returns the score with the highest evaluation."""
 
-    global node_count
+    global node_count, history_table
     node_count += 1
 
     if node_count & 255 == 0:
@@ -120,7 +124,7 @@ def negamax(board, depth, alpha, beta, ply):
 
     moves = list(board.legal_moves)
     #Transposition table move goes first, then all captures and then the quiet killer moves.
-    moves.sort(key=lambda move: 24000 if move == tt_move else rank_move(board, move, killer_moves[ply]), reverse=True)
+    moves.sort(key=lambda move: 150000 if move == tt_move else rank_move(board, move, killer_moves[ply], history_table), reverse=True)
 
     for move in moves:
         board.push(move)
@@ -133,10 +137,13 @@ def negamax(board, depth, alpha, beta, ply):
             alpha = max_score
         if score >= beta:
             if not board.is_capture(move):
-                #Killer moves get overwritten at a beta-cutoff.
+                #Quiet killer moves get overwritten at a beta-cutoff.
                 if killer_moves[ply][0] != move:
                     killer_moves[ply][1] = killer_moves[ply][0]
                     killer_moves[ply][0] = move
+
+                #Quiet moves causing a beta-cutoff are added to the history table.
+                history_table[move.from_square][move.to_square] += depth * depth
             break
 
     if (max_score <= alpha_start):
@@ -181,7 +188,7 @@ def quiescence(board, alpha, beta):
 
     captures = list(board.generate_legal_captures())
     #Killer moves don't matter here, since quiescence search only evaluates captures.
-    captures.sort(key=lambda move: 24000 if move == tt_move else rank_move(board, move), reverse=True)
+    captures.sort(key=lambda move: 150000 if move == tt_move else rank_move(board, move), reverse=True)
 
     for move in captures:
         node_count += 1

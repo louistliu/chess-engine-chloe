@@ -1,7 +1,7 @@
 import chess
 from engine.psqt import PIECES_MG
 
-def rank_move(board, move, killer_moves=None):
+def rank_move(board, move, killer_moves=None, history_table=None):
     """Ranks moves based off of MVV-LVA. Move ordering helps with pruning."""
 
     if board.is_capture(move):
@@ -9,12 +9,15 @@ def rank_move(board, move, killer_moves=None):
         victim = board.piece_at(move.to_square)
         victim_value = PIECES_MG[victim.piece_type] if victim else PIECES_MG[chess.PAWN]
 
-        return 300 + (victim_value*10) - attacker_value
+        return 120000 + (victim_value*10) - attacker_value
 
     if killer_moves:
         if move == killer_moves[0]:
-            return 200
+            return 110000
         if move == killer_moves[1]:
-            return 100
+            return 100000
+
+    if history_table:
+        return history_table[move.from_square][move.to_square]
     
     return 0
