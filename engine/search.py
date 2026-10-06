@@ -126,9 +126,24 @@ def negamax(board, depth, alpha, beta, ply):
     #Transposition table move goes first, then all captures and then the quiet killer moves.
     moves.sort(key=lambda move: 150000 if move == tt_move else rank_move(board, move, killer_moves[ply], history_table), reverse=True)
 
+    is_check = board.is_check()
+    move_count = 0
+
     for move in moves:
+        move_count += 1
+        is_quiet = not board.is_capture(move)
+
         board.push(move)
-        score = -negamax(board, depth-1, -beta, -alpha, ply+1)
+
+        #Late Move Reductions searches quiet moves far into the tree at reduced depth. Unless the reduced depth
+        #search surprisingly beats alpha and is therefore worth investigating.
+        if depth >= 3 and move_count >= 8 and is_quiet and not is_check:
+            score = -negamax(board, depth-2, -beta, -alpha, ply+1)
+            if score > alpha:
+                score = -negamax(board, depth-1, -beta, -alpha, ply+1)
+        else:
+            score = -negamax(board, depth-1, -beta, -alpha, ply+1)
+
         board.pop()
         if score > max_score:
             max_score = score

@@ -56,7 +56,7 @@ BENCHMARK_POSITIONS = [
     "7k/7P/6K1/8/3B4/8/8/8 b - -"
 ]
 
-def benchmark(depth=4):
+def benchmark(depth=5):
     """Runs a benchmark test with the selected position FENS. It will return
     the elapsed time, node searched and the average nodes per second."""
 
