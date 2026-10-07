@@ -118,6 +118,23 @@ def negamax(board, depth, alpha, beta, ply):
     if depth == 0:
         return quiescence(board, alpha, beta)
 
+    is_check = board.is_check()
+
+    #At higher depths, check if a position is so overwhelmingly strong, that your opponent can't
+    #beat your beta-score, if you've not played a move at all.
+    if depth >= 3 and not is_check:
+        #Don't try multiple null moves.
+        if not (board.move_stack and board.move_stack[-1] == chess.Move.null()):
+            #Only check positions with more pieces than kings or pawns. Else zugzwang becomes a real problem.
+            if board.occupied_co[board.turn] & ~board.pawns & ~board.kings:
+                board.push(chess.Move.null())
+                score = -negamax(board, depth - 3, -beta, -beta+1, ply+1)
+                board.pop()
+
+                if score >= beta:
+                    return beta
+
+
     max_score = -float('inf')
     best_move = None
     alpha_start = alpha
@@ -126,7 +143,6 @@ def negamax(board, depth, alpha, beta, ply):
     #Transposition table move goes first, then all captures and then the quiet killer moves.
     moves.sort(key=lambda move: 150000 if move == tt_move else rank_move(board, move, killer_moves[ply], history_table), reverse=True)
 
-    is_check = board.is_check()
     move_count = 0
 
     for move in moves:
