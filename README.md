@@ -24,6 +24,24 @@ You can play against Chloe on lichess: [link]
 - Time management
   - Allocates time per move from the remaining clock, the increment and moves until time added
   - Soft and hard bound for the allocated time, allowing the engine to use time dynamically.
- 
+
+# Prerequisites
+
+- Python 3.8+
+  
 # Setup
+
+Clone the repository:
+```
+git clone <your repo>
+cd <repo>
+```
+Download the dependencies:
+```
+pip install -r requirements.txt
+```
+Now you can load the engine in your favorite GUI and point the executable to:
+- run.bat file for Windows-users
+- run.sh file for Linux/MacOS-users
+
 
