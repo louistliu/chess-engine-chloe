@@ -2,7 +2,7 @@
 
 Chloe is a UCI-compatible chess engine written in Python. It utilizes the python-chess library for underlying board representation and move generation, paired with a custom-built, optimized Negamax search algorithm based on Alpha-Beta pruning. 
 
-You can play against Chloe on lichess: [link]
+You can play against Chloe on lichess: [[link]](https://lichess.org/@/Chloe_Engine)
 
 # Features
 
