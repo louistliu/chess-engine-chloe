@@ -4,6 +4,7 @@ from engine.evaluate import evaluate_board
 from engine.move_order import rank_move
 from engine.tt import TranspositionTable, EXACT, BETA_CUT, ALPHA_CUT
 
+INF = 50000
 node_count = 0
 history_table = [[0 for _ in range(64)] for _ in range(64)]
 killer_moves = [[None, None] for _ in range(64)] 
@@ -27,7 +28,7 @@ def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=N
     moves = list(board.legal_moves)
 
     best_move = moves[0]
-    max_score = -float('inf')
+    max_score = -INF
     depth_reached = 0
 
     tm.allocate_time(board, wtime, btime, winc, binc, moves_until_limit)
@@ -53,10 +54,10 @@ def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=N
                 moves.insert(0, best_move)
             
             current_best_move = None
-            current_max_score = -float('inf')
+            current_max_score = -INF-1
 
-            alpha = -float('inf')
-            beta = float('inf')
+            alpha = -INF
+            beta = INF
 
             for move in moves:
                 board.push(move)
@@ -94,7 +95,7 @@ def negamax(board, depth, alpha, beta, ply):
     global node_count, history_table
     node_count += 1
 
-    if node_count & 255 == 0:
+    if node_count & 127 == 0:
         tm.check_timeout()
 
     #Check claiming draws first, since transposition table does not know anything about either the 3-fold 
@@ -105,12 +106,10 @@ def negamax(board, depth, alpha, beta, ply):
     tt_score, tt_move = tt.lookup(board, depth, alpha, beta)
     if tt_score is not None:
         return tt_score
-    
-    if board.is_checkmate():
-        return -24000 - depth
 
-    if board.is_stalemate():
-        return 0
+    moves = list(board.legal_moves)
+    if not moves:
+        return (-24000 - depth) if board.is_check() else 0
     
     if board.is_insufficient_material():
         return 0
@@ -128,18 +127,17 @@ def negamax(board, depth, alpha, beta, ply):
             #Only check positions with more pieces than kings or pawns. Else zugzwang becomes a real problem.
             if board.occupied_co[board.turn] & ~board.pawns & ~board.kings:
                 board.push(chess.Move.null())
-                score = -negamax(board, depth - 3, -beta, -beta+1, ply+1)
+                score = -negamax(board, depth-3, -beta, -beta+1, ply+1)
                 board.pop()
 
                 if score >= beta:
                     return beta
 
 
-    max_score = -float('inf')
+    max_score = -INF
     best_move = None
     alpha_start = alpha
 
-    moves = list(board.legal_moves)
     #Transposition table move goes first, then all captures and then the quiet killer moves.
     moves.sort(key=lambda move: 150000 if move == tt_move else rank_move(board, move, killer_moves[ply], history_table), reverse=True)
 
@@ -194,7 +192,7 @@ def quiescence(board, alpha, beta):
 
     global node_count
 
-    if node_count & 255 == 0:
+    if node_count & 127 == 0:
         tm.check_timeout()
 
     tt_score, tt_move = tt.lookup(board, 0, alpha, beta)
