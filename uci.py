@@ -18,7 +18,7 @@ def main():
 
         if command == "uci":
             print("id name Chloe", flush=True)
-            print("id name Louis", flush=True)
+            print("id author Louis", flush=True)
             print("uciok", flush=True)
 
         elif command == "isready":
