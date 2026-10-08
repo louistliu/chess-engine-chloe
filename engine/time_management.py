@@ -18,7 +18,7 @@ class TimeManager:
         self.soft_limit_multiplier = soft
         self.hard_limit_multiplier = hard
 
-    def allocate_time(self, board, wtime=None, btime=None, winc=None, binc=None, moves_until_limit=None):
+    def allocate_time(self, board, wtime=None, btime=None, winc=None, binc=None, moves_until_limit=None, movetime=None):
         """Allocates time to the search, based off of the time remaining, increment and
         the amount of moves left until the next time bonus. If the time remaining is too
         low, the search will be skipped and an almost random move will be played."""
@@ -28,7 +28,14 @@ class TimeManager:
         self.hard_limit = None
         self.skip_search = False
 
-        if wtime is not None and btime is not None:
+        if movetime is not None:
+            if movetime < 150:
+                self.skip_search = True
+            else:
+                self.soft_limit = movetime * self.soft_limit_multiplier
+                self.hard_limit = (movetime - 50) / 1000
+
+        elif wtime is not None and btime is not None:
             remaining_time = wtime if board.turn == chess.WHITE else btime
             increment = (winc or 0) if board.turn == chess.WHITE else (binc or 0)
             if remaining_time < 150:

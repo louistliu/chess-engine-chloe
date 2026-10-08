@@ -11,7 +11,7 @@ killer_moves = [[None, None] for _ in range(64)]
 tt = TranspositionTable()
 tm = TimeManager(0.3, 1.8)
 
-def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=None, moves_until_limit=None):
+def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=None, moves_until_limit=None, movetime=None):
     """Finds the best move at the root of the search tree. Bridges the UCI communication with 
     the search algorithms like negamax below. Does the search at inreasing depth until the time
     allocated for the move is up. Returns the best move and its score."""
@@ -31,7 +31,7 @@ def get_best_move(board, max_depth=64, wtime=None, btime=None, winc=None, binc=N
     max_score = -INF
     depth_reached = 0
 
-    tm.allocate_time(board, wtime, btime, winc, binc, moves_until_limit)
+    tm.allocate_time(board, wtime, btime, winc, binc, moves_until_limit, movetime)
 
     if tm.skip_search:
         return best_move, max_score, 0

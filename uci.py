@@ -48,6 +48,7 @@ def main():
             winc = None
             binc = None
             moves_until_reset = None
+            movetime = None
 
             for i in range(len(words) - 1):
                 if words[i] == "wtime":
@@ -60,8 +61,10 @@ def main():
                     binc = int(words[i+1])
                 elif words[i] == "movestogo":
                     moves_until_reset = int(words[i+1])
+                elif words[i] == "movetime":
+                    movetime = int(words[i+1])
             
-            move, score, depth = get_best_move(board, depth, wtime, btime, winc, binc, moves_until_reset)
+            move, score, depth = get_best_move(board, depth, wtime, btime, winc, binc, moves_until_reset, movetime)
 
             if move:
                 print(f"info depth {depth} score cp {score} nodes {search.node_count}", flush=True)
